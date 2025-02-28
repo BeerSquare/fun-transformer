@@ -87,8 +87,8 @@
     # 测试模型
     test(model, src_vocab, tgt_vocab, src_len, tgt_len)
 
-### 使用[hongloumeng.txt](https://github.com/BeerSquare/fun-transformer/blob/main/hongloumeng.txt)作为数据集测试模型
-- 使用代码进行翻译测试：
+### 使用[hongloumeng.txt](https://github.com/BeerSquare/fun-transformer/blob/main/hongloumeng.txt)作为数据集训练模型
+- 测试：翻译“满纸辛酸泪”：
   ```python
   # 测试函数
   def test(model, src_vocab, tgt_vocab, src_len, tgt_len):
@@ -112,8 +112,8 @@
   源句子: 满纸辛酸泪
   翻译结果: They say the author
 - 翻译结果：张冠李戴。txt内是所有词汇对应表。训练数据太少，只能缘木求鱼；凡有修改，就会张冠李戴。
-### 使用[ChineseToEnglish.txt](https://github.com/BeerSquare/fun-transformer/blob/main/ChineseToEnglish.txt)作为数据集测试模型
-- 使用代码进行翻译测试：
+### 使用[ChineseToEnglish.txt](https://github.com/BeerSquare/fun-transformer/blob/main/ChineseToEnglish.txt)作为数据集训练模型
+- 测试：翻译“满纸辛酸泪”：
   ```python
   # 测试函数
   def test(model, src_vocab, tgt_vocab, src_len, tgt_len):
