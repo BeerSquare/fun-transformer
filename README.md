@@ -1,9 +1,17 @@
 # Fun Transformer
 ## 项目描述
-本项目出于自学目的搭建，旨在加深初学者对Transformer模型的理解。
-项目来源于深度学习平台Datawhale于2025年2月发布的开源课程零基础实践Transformer模型。
+本项目基于深度学习平台Datawhale于2025年2月发布的开源课程“零基础实践Transformer模型”进行修改。项目上传出于教学用途，旨在加深初学者对Transformer模型的理解。
 - 开源教程网址：https://github.com/datawhalechina/fun-transformer
 - 在线学习网站：http://www.datawhale.cn/learn/summary/87
+
+添加了以下功能：
+- 功能 1
+- 功能 2
+  
+## 许可证
+本项目基于 [fun-transformer](https://github.com/datawhalechina/fun-transformer) 的 Apache License 2.0许可证。详情请参阅 [LICENSE](LICENSE) 文件。
+
+
 
 
 
