@@ -37,7 +37,7 @@
 
 ## 使用说明
 ### 数据准备
-- 数据格式：[hongloumeng.txt](https://github.com/BeerSquare/fun-transformer/hongloumeng.txt)是一个包含中英文句子的列表，格式如下：
+- 数据格式：[hongloumeng.txt](https://github.com/BeerSquare/fun-transformer/blob/main/hongloumeng.txt)是一个包含中英文句子的列表，格式如下：
   ```txt
   满纸荒唐言|Full of nonsense
   一把辛酸泪|A handful of bitter tears
