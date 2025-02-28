@@ -88,7 +88,7 @@ def main():
 
     # 创建数据集和数据加载器
     dataset = MyDataSet(enc_inputs, dec_inputs, dec_outputs)
-    loader = Data.DataLoader(dataset, batch_size=2, shuffle=True)
+    loader = Data.DataLoader(dataset, batch_size=32, shuffle=True)
 
     # 定义超参数
     d_model = 512
@@ -107,7 +107,7 @@ def main():
     optimizer = optim.SGD(model.parameters(), lr=1e-3, momentum=0.99)
 
     # 训练模型
-    train(model, loader, criterion, optimizer, epochs=50)
+    train(model, loader, criterion, optimizer, epochs=10)
     
     # 测试模型
     test(model, src_vocab, tgt_vocab, src_len, tgt_len)
