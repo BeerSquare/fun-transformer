@@ -210,7 +210,7 @@
 
 ## 联系方式
 如有任何问题，请联系：
-邮箱：1259712042@qq.com
-GitHub:BeerSquare
+- 邮箱：1259712042@qq.com
+- GitHub:[BeerSquare](https://github.com/BeerSquare）
 
 
