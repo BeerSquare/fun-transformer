@@ -9,7 +9,7 @@
 - 功能 2
   
 ## 许可证
-本项目基于 [fun-transformer](https://github.com/datawhalechina/fun-transformer) 的 Apache License 2.0许可证。详情请参阅 [LICENSE](LICENSE) 文件。
+本项目基于 [fun-transformer](https://github.com/datawhalechina/fun-transformer) 的 Apache License 2.0许可证。详情请参阅 [LICENSE](https://github.com/BeerSquare/fun-transformer/LICENSE) 文件。
 
 
 
