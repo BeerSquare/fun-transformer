@@ -136,7 +136,7 @@
   Epoch: 0010, Avg Loss: 4.447792
   源句子: 满纸辛酸泪
   翻译结果: I don't like to do that.
-- 翻译结果：意译。勉强“信”，不“达雅”。txt内现代表达居多。
+- 翻译结果：意译。勉强“信”，不“达雅”。数据集内现代表达居多。
 
 ### 注意力可视化
 - 可以通过 enc_self_attns 和 dec_self_attns 查看 Encoder 和 Decoder 的注意力权重。
