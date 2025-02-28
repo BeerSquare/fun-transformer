@@ -43,7 +43,7 @@
   一把辛酸泪|A handful of bitter tears
   都言作者痴|They say the author is foolish
   谁解其中味|Who understands the true meaning
-- 或者，你可以选择更大的数据集[ChineseToEnglish.txt](https://github.com/BeerSquare/fun-transformer/blob/main/ChineseToEnglish.txt)
+- 或者，你可以选择更大的数据集[ChineseToEnglish.txt](https://github.com/BeerSquare/fun-transformer/blob/main/ChineseToEnglish.txt)。此数据集来源[Tatoeba多语言句子库](https://tatoeba.org/zh-cn/downloads)。
 
 ### 训练模型
 - 运行以下代码开始训练：
