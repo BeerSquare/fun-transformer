@@ -295,9 +295,6 @@
 - train.py为训练模块。
 - test.py为测试模块。
 
-### 流程图
-txt文件输入->句子对列表（sentences）->源词汇表（src_vocab）和目标词汇表（tgt_vocab）->编码器输入（enc_inputs）、解码器输入（dec_inputs）、输出（dec_outputs）->
-
 ## 附录：核心机制的可视化
 ### 词嵌入与词向量
 - 词汇映射
@@ -439,8 +436,7 @@ txt文件输入->句子对列表（sentences）->源词汇表（src_vocab）和�
 ![image](https://github.com/user-attachments/assets/9baac572-c115-45d2-9f6a-d50da8354e7c)
 
 ### 编码器-解码器
-![image](https://github.com/user-attachments/assets/88162938-ad42-444c-a0a1-ac9b6e799edb)
-![image](https://github.com/user-attachments/assets/f9e86fb5-2a89-4cb8-bd91-1578649844b8)
+![image](https://github.com/user-attachments/assets/026c1f5c-f6b7-434a-be1c-41912577a1d2)
 
 ## 常见问题QA
 ### 为什么数据预处理需要填充？
@@ -450,7 +446,6 @@ txt文件输入->句子对列表（sentences）->源词汇表（src_vocab）和�
 - 例如，解码器首先生成第一个词 "Full"，然后以 "Full" 作为输入生成第二个词 "of"，依此类推。
 ### 位置编码的具体过程是？
 - 经典的编码过程（摘自《Attention is All You Need》）如下。设定d为位置向量的维度。在Transformer中，词向量和位置向量是逐元素相加的，因此位置向量的维度通常与词向量维度相同。 设定i为位置编码向量的维度的索引，其取值为0到d/2-1。
-
 - 当i为偶数是，即2i=(0,2,4,…)$时，位置编码应当使用正弦函数；当i为奇数时，即2i+1=(1, 3, 5, …)时，位置编码应当使用余弦函数。因此位置编码公式为：
 - $PE(pos，2i)=sin(pos/10000^{2i/d})$
 - $PE(pos，2i+1)=cos(pos/10000^{2i/d})$
