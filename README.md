@@ -260,8 +260,25 @@
   翻译结果: I don't like to do that.
 - 翻译结果：意译。勉强“信”，不“达雅”。数据集内现代表达居多。
 
-### 注意力可视化
-- 可以通过 enc_self_attns 和 dec_self_attns 查看 Encoder 和 Decoder 的注意力权重。
+
+## 设计文档
+### 项目架构
+- 项目从零构建了 Transformer 模型，完成端到端的机器翻译任务，便于初学者深入理解Attention 机制、Encoder-Decoder 架构及其与CNN/RNN的差异。
+- 项目分为四个模块：数据预处理模块、编码器-解码器模块、训练模块和测试模块。
+### 模块说明
+- data_utils.py为数据预处理模块。此模块主要包含三个函数。
+  - load_sentences_from_txt负责从 txt 文件中读取句子对。其输入为txt文件路径。该函数逐句处理文件，分离源语言和目标语言，为源语言添加起始符和结束符，输出符合要求的句子对列表（sentences），为下一步动态生成词汇表做准备；
+  - build_vocab负责由txt文件动态生成词汇表。其输入经处理的句子对列表，输出了；
+  - make_data负责对数据进行预处理。其输入为句子对列表（sentences）、源语言和目标语言的词汇表及其长度。将输入的句子转化成模型训练所需要的张量格式。三个张量（enc_inputs、dec_inputs、dec_outputs），分别表示编码器输入、解码器输入和解码器输出，这些张量已经过填充（padding）并转换为索引形式。
+- 编码器-解码器模块包含layers.py和model.py两个文件。
+- 其中，model.py包含Encoder、Decoder和Transformer的整体设计，主要依赖layers.py中的PositionEncoding、MultipleAttention、FF（前馈层）来实现。
+- train.py为训练模块。
+- test.py为测试模块。
+### 流程图
+文件输入->
+
+### 附录
+
 
 ## 许可证
 本项目基于 [fun-transformer](https://github.com/datawhalechina/fun-transformer) 的 Apache License 2.0许可证。详情请参阅 [LICENSE](https://github.com/BeerSquare/fun-transformer/blob/main/LICENSE.txt) 文件。
