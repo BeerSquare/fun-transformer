@@ -1,6 +1,6 @@
 # Fun Transformer
 ## 项目描述
-本项目基于深度学习平台Datawhale于2025年2月发布的开源课程“零基础实践Transformer模型”进行修改。项目上传出于教学用途，旨在加深初学者对Transformer模型的理解。
+本项目基于深度学习平台Datawhale于2025年1月发布的开源课程“零基础实践Transformer模型”进行修改。项目上传出于教学用途，旨在加深初学者对Transformer模型的理解。
 - 开源教程网址：[fun-transformer](https://github.com/datawhalechina/fun-transformer)
 - 在线学习网站：[Datawhale](http://www.datawhale.cn/learn/summary/87)
 
@@ -266,16 +266,18 @@
 - 项目从零构建了 Transformer 模型，完成端到端的机器翻译任务，便于初学者深入理解Attention 机制、Encoder-Decoder 架构及其与CNN/RNN的差异。
 - 项目分为四个模块：数据预处理模块、编码器-解码器模块、训练模块和测试模块。
 ### 模块说明
-- data_utils.py为数据预处理模块。此模块主要包含五个函数和一个类。
-  - load_sentences_from_txt负责从 txt 文件中读取句子对。其输入为txt文件路径。该函数逐句处理文件，分离源语言和目标语言，为源语言添加起始符和结束符，输出符合要求的句子对列表（sentences），为下一步动态生成词汇表做准备；
+- **data_utils.py**为数据预处理模块。此模块主要包含五个函数和一个类。
+  - **load_sentences_from_txt**负责从 txt 文件中读取句子对。其输入为txt文件路径。该函数逐句处理文件，分离源语言和目标语言，为源语言添加起始符和结束符，输出符合要求的句子对列表（sentences），为下一步动态生成词汇表做准备；
     
-  - build_vocab负责由txt文件动态生成词汇表。其输入为经处理的句子对列表（sentences）。该函数首先初始化词汇表，先设置了三个特殊符号，即词汇表中索引0、1、2的三个位置分别为特殊符号P（填充）、S（开始）和E（结束）；其次该函数遍历句子对，将源句子和目标句子拆分为单词，不重复地添加到源词汇表（src_vocab）和目标词汇表（tgt_vocab）中；最后保存两张词汇表到vocab.pth中，输出构建好的 源词汇表（src_vocab）和目标词汇表（tgt_vocab）；
+  - **build_vocab**负责由txt文件动态生成词汇表。其输入为经处理的句子对列表（sentences）。该函数首先初始化词汇表，先设置了三个特殊符号，即词汇表中索引0、1、2的三个位置固定为为特殊符号P（填充）、S（开始）和E（结束）；其次该函数遍历句子对列表（sentences），将源句子和目标句子拆分为单词，不重复地添加到源词汇表（src_vocab）和目标词汇表（tgt_vocab）中；最后保存两张词汇表到vocab.pth中，输出构建好的源词汇表（src_vocab）和目标词汇表（tgt_vocab）；
     
-  - make_data负责对数据进行预处理。其输入为句子对列表（sentences）、源语言和目标语言的词汇表及其长度。该函数经过索引化和填充，将源语言句子转化为编码器输入（enc_inputs），将目标语言句子转化为解码器输入（dec_inputs）和输出（dec_outputs）， 将输入的句子转化成模型训练所需要的张量格式。
- 
-  - get_attn_pad_mask负责
+  - **make_data**负责对数据进行预处理。其输入为句子对列表（sentences）、源语言和目标语言的词汇表及其长度。该函数经过索引化和填充，将源语言句子转化为编码器输入（enc_inputs），将目标语言句子转化为解码器输入（dec_inputs）和输出（dec_outputs）， 将输入的句子转化成模型训练所需要的张量格式。
     
-  - get_attn_subsequence_mask负责
+  - **MyDataSet**类封装了编码器输入（enc_inputs）、解码器输入（dec_inputs）和解码器输出（dec_outputs），以便在训练或推理过程中方便地加载和处理数据。
+    
+  - **get_attn_pad_mask**负责屏蔽填充位置（Padding Mask），防止模型关注填充符号 'P'。其输入为查询序列（seq_q）和键序列（Key）。函数使用 seq_k.data.eq(0) 找到序列中值为 0 的位置，使用 unsqueeze(1) 将掩码扩展为 [batch_size, 1, len_k]，再使用expand 将掩码扩展为 [batch_size, len_q, len_k]，使其与注意力权重的形状一致。
+    
+  - **get_attn_subsequence_mask**负责防止解码器在生成当前词时看到未来的词。该函数使用 np.triu() 生成一个上三角矩阵，使用 torch.from_numpy().byte() 将 NumPy 数组转换为 PyTorch 张量。函数输出一个布尔张量，形状为 [batch_size, len_seq, len_seq]，其中上三角部分为 1，其余部分为 0。
     
 - 编码器-解码器模块包含layers.py和model.py两个文件。其中，model.py包含Encoder、Decoder和Transformer的整体设计，主要依赖layers.py中的PositionEncoding、MultipleAttention、FF（前馈层）来实现。
   - PositionEncoding
@@ -289,13 +291,19 @@
 
 ### 流程图
 txt文件输入->句子对列表（sentences）->源词汇表（src_vocab）和目标词汇表（tgt_vocab）->编码器输入（enc_inputs）、解码器输入（dec_inputs）、输出（dec_outputs）
+## 核心机制的可视化
+### 词嵌入与词向量
 
-### 常见问题QA
-- 为什么数据预处理需要填充？
-  - 确保所有输入具有相同的形状，这是深度学习模型的常见要求。
-- 为什么目标语言既是解码器的输入、又是解码器的输出？
-  - 这种设计是为了实现自**回归Auto-regressive**的训练方式。在训练阶段，解码器的目标是逐步生成目标序列。为了实现这一点，解码器在每一步的输入是前一步的输出。
-  - 例如，解码器首先生成第一个词 "Full"，然后以 "Full" 作为输入生成第二个词 "of"，依此类推。
+### 注意力机制
+
+### 编码器-解码器
+
+## 常见问题QA
+### 为什么数据预处理需要填充？
+- 在Seq2Seq问题中，输入序列的长度通常不一致。为了将多个序列打包成一个批次（batch），通常会将较短的序列填充到固定长度，填充符号通常用 0 表示，以便后续统一作为张量处理。
+### 为什么目标语言既是解码器的输入、又是解码器的输出？
+- 这种设计是为了实现自**回归Auto-regressive**的训练方式。在训练阶段，解码器的目标是逐步生成目标序列。为了实现这一点，解码器在每一步的输入是前一步的输出。
+- 例如，解码器首先生成第一个词 "Full"，然后以 "Full" 作为输入生成第二个词 "of"，依此类推。
 
 ## 许可证
 本项目基于 [fun-transformer](https://github.com/datawhalechina/fun-transformer) 的 Apache License 2.0许可证。详情请参阅 [LICENSE](https://github.com/BeerSquare/fun-transformer/blob/main/LICENSE.txt) 文件。
