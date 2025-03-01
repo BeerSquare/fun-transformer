@@ -266,19 +266,36 @@
 - 项目从零构建了 Transformer 模型，完成端到端的机器翻译任务，便于初学者深入理解Attention 机制、Encoder-Decoder 架构及其与CNN/RNN的差异。
 - 项目分为四个模块：数据预处理模块、编码器-解码器模块、训练模块和测试模块。
 ### 模块说明
-- data_utils.py为数据预处理模块。此模块主要包含三个函数。
+- data_utils.py为数据预处理模块。此模块主要包含五个函数和一个类。
   - load_sentences_from_txt负责从 txt 文件中读取句子对。其输入为txt文件路径。该函数逐句处理文件，分离源语言和目标语言，为源语言添加起始符和结束符，输出符合要求的句子对列表（sentences），为下一步动态生成词汇表做准备；
-  - build_vocab负责由txt文件动态生成词汇表。其输入经处理的句子对列表，输出了；
-  - make_data负责对数据进行预处理。其输入为句子对列表（sentences）、源语言和目标语言的词汇表及其长度。将输入的句子转化成模型训练所需要的张量格式。三个张量（enc_inputs、dec_inputs、dec_outputs），分别表示编码器输入、解码器输入和解码器输出，这些张量已经过填充（padding）并转换为索引形式。
-- 编码器-解码器模块包含layers.py和model.py两个文件。
-- 其中，model.py包含Encoder、Decoder和Transformer的整体设计，主要依赖layers.py中的PositionEncoding、MultipleAttention、FF（前馈层）来实现。
+    
+  - build_vocab负责由txt文件动态生成词汇表。其输入为经处理的句子对列表（sentences）。该函数首先初始化词汇表，先设置了三个特殊符号，即词汇表中索引0、1、2的三个位置分别为特殊符号P（填充）、S（开始）和E（结束）；其次该函数遍历句子对，将源句子和目标句子拆分为单词，不重复地添加到源词汇表（src_vocab）和目标词汇表（tgt_vocab）中；最后保存两张词汇表到vocab.pth中，输出构建好的 源词汇表（src_vocab）和目标词汇表（tgt_vocab）；
+    
+  - make_data负责对数据进行预处理。其输入为句子对列表（sentences）、源语言和目标语言的词汇表及其长度。该函数经过索引化和填充，将源语言句子转化为编码器输入（enc_inputs），将目标语言句子转化为解码器输入（dec_inputs）和输出（dec_outputs）， 将输入的句子转化成模型训练所需要的张量格式。
+ 
+  - get_attn_pad_mask负责
+    
+  - get_attn_subsequence_mask负责
+    
+- 编码器-解码器模块包含layers.py和model.py两个文件。其中，model.py包含Encoder、Decoder和Transformer的整体设计，主要依赖layers.py中的PositionEncoding、MultipleAttention、FF（前馈层）来实现。
+  - PositionEncoding
+  - MultipleAttention
+  - FF
+  - Encoder
+  - Decoder
+  - Transformer
 - train.py为训练模块。
 - test.py为测试模块。
+
 ### 流程图
-文件输入->
+txt文件输入->句子对列表（sentences）->源词汇表（src_vocab）和目标词汇表（tgt_vocab）->编码器输入（enc_inputs）、解码器输入（dec_inputs）、输出（dec_outputs）
 
-### 附录
-
+### 常见问题QA
+- 为什么数据预处理需要填充？
+  - 确保所有输入具有相同的形状，这是深度学习模型的常见要求。
+- 为什么目标语言既是解码器的输入、又是解码器的输出？
+  - 这种设计是为了实现自**回归Auto-regressive**的训练方式。在训练阶段，解码器的目标是逐步生成目标序列。为了实现这一点，解码器在每一步的输入是前一步的输出。
+  - 例如，解码器首先生成第一个词 "Full"，然后以 "Full" 作为输入生成第二个词 "of"，依此类推。
 
 ## 许可证
 本项目基于 [fun-transformer](https://github.com/datawhalechina/fun-transformer) 的 Apache License 2.0许可证。详情请参阅 [LICENSE](https://github.com/BeerSquare/fun-transformer/blob/main/LICENSE.txt) 文件。
