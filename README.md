@@ -184,40 +184,65 @@
       test(model, src_vocab, tgt_vocab, src_len, tgt_len)
   
 ### 使用[hongloumeng.txt](https://github.com/BeerSquare/fun-transformer/blob/main/hongloumeng.txt)作为数据集
-- 测试：翻译“满纸辛酸泪”：
-  ```python
-  # 测试函数
-  def test(model, src_vocab, tgt_vocab, src_len, tgt_len):
-    # 测试句子
-    test_sentence = "满纸辛酸泪"
-    print(f"源句子: {test_sentence}")
-    translated_sentence = translate(model, test_sentence, src_vocab, tgt_vocab, src_len, tgt_len)
-    print(f"翻译结果: {translated_sentence}")
+- 测试：翻译“满纸辛酸泪”，batch_size=2, epochs=50
 - 测试结果：
   ```txt
-  Epoch: 0001, Avg Loss: 3.185951
-  Epoch: 0002, Avg Loss: 3.095047
-  Epoch: 0003, Avg Loss: 2.966973
-  Epoch: 0004, Avg Loss: 2.807616
-  Epoch: 0005, Avg Loss: 2.617177
-  Epoch: 0006, Avg Loss: 2.440889
-  Epoch: 0007, Avg Loss: 2.246624
-  Epoch: 0008, Avg Loss: 2.162881
-  Epoch: 0009, Avg Loss: 1.898559
-  Epoch: 0010, Avg Loss: 1.730894
+  Epoch: 0001, Avg Loss: 3.338455
+  Epoch: 0002, Avg Loss: 3.004684
+  Epoch: 0003, Avg Loss: 2.488638
+  Epoch: 0004, Avg Loss: 2.109935
+  Epoch: 0005, Avg Loss: 1.764553
+  Epoch: 0006, Avg Loss: 1.393467
+  Epoch: 0007, Avg Loss: 1.174642
+  Epoch: 0008, Avg Loss: 1.005366
+  Epoch: 0009, Avg Loss: 0.873622
+  Epoch: 0010, Avg Loss: 0.711802
+  Epoch: 0011, Avg Loss: 0.572180
+  Epoch: 0012, Avg Loss: 0.443027
+  Epoch: 0013, Avg Loss: 0.366159
+  Epoch: 0014, Avg Loss: 0.293282
+  Epoch: 0015, Avg Loss: 0.191762
+  Epoch: 0016, Avg Loss: 0.124517
+  Epoch: 0017, Avg Loss: 0.089571
+  Epoch: 0018, Avg Loss: 0.059290
+  Epoch: 0019, Avg Loss: 0.048592
+  Epoch: 0020, Avg Loss: 0.040043
+  Epoch: 0021, Avg Loss: 0.034745
+  Epoch: 0022, Avg Loss: 0.023343
+  Epoch: 0023, Avg Loss: 0.021037
+  Epoch: 0024, Avg Loss: 0.018994
+  Epoch: 0025, Avg Loss: 0.018008
+  Epoch: 0026, Avg Loss: 0.013908
+  Epoch: 0027, Avg Loss: 0.014778
+  Epoch: 0028, Avg Loss: 0.013300
+  Epoch: 0029, Avg Loss: 0.010145
+  Epoch: 0030, Avg Loss: 0.011074
+  Epoch: 0031, Avg Loss: 0.010475
+  Epoch: 0032, Avg Loss: 0.012780
+  Epoch: 0033, Avg Loss: 0.011357
+  Epoch: 0034, Avg Loss: 0.010622
+  Epoch: 0035, Avg Loss: 0.010350
+  Epoch: 0036, Avg Loss: 0.010978
+  Epoch: 0037, Avg Loss: 0.013631
+  Epoch: 0038, Avg Loss: 0.010630
+  Epoch: 0039, Avg Loss: 0.009026
+  Epoch: 0040, Avg Loss: 0.008175
+  Epoch: 0041, Avg Loss: 0.006770
+  Epoch: 0042, Avg Loss: 0.006879
+  Epoch: 0043, Avg Loss: 0.005603
+  Epoch: 0044, Avg Loss: 0.004413
+  Epoch: 0045, Avg Loss: 0.004573
+  Epoch: 0046, Avg Loss: 0.003865
+  Epoch: 0047, Avg Loss: 0.003989
+  Epoch: 0048, Avg Loss: 0.003490
+  Epoch: 0049, Avg Loss: 0.002911
+  Epoch: 0050, Avg Loss: 0.002583
+  Model saved to 'model.pth'
   源句子: 满纸辛酸泪
-  翻译结果: They say the author
+  翻译结果: Full of nonsense
 - 翻译结果：张冠李戴。txt内是所有词汇对应表。训练数据太少，只能缘木求鱼；凡有修改，就会张冠李戴。
 ### 使用[ChineseToEnglish.txt](https://github.com/BeerSquare/fun-transformer/blob/main/ChineseToEnglish.txt)作为数据集
-- 测试：翻译“满纸辛酸泪”：
-  ```python
-  # 测试函数
-  def test(model, src_vocab, tgt_vocab, src_len, tgt_len):
-    # 测试句子
-    test_sentence = "满纸辛酸泪"
-    print(f"源句子: {test_sentence}")
-    translated_sentence = translate(model, test_sentence, src_vocab, tgt_vocab, src_len, tgt_len)
-    print(f"翻译结果: {translated_sentence}")
+- 测试：翻译“满纸辛酸泪”，batch_size=32, epochs=10
 - 测试结果：
   ```txt
   Epoch: 0001, Avg Loss: 7.172143
@@ -230,6 +255,7 @@
   Epoch: 0008, Avg Loss: 4.949931
   Epoch: 0009, Avg Loss: 4.694051
   Epoch: 0010, Avg Loss: 4.447792
+  Model saved to 'model.pth'
   源句子: 满纸辛酸泪
   翻译结果: I don't like to do that.
 - 翻译结果：意译。勉强“信”，不“达雅”。数据集内现代表达居多。
