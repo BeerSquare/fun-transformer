@@ -279,18 +279,19 @@
     
   - **函数get_attn_subsequence_mask**负责防止解码器在生成当前词时看到未来的词。该函数使用 np.triu() 生成一个上三角矩阵，使用 torch.from_numpy().byte() 将 NumPy 数组转换为 PyTorch 张量。函数输出一个布尔张量，形状为 [batch_size, len_seq, len_seq]，其中上三角部分为 1，其余部分为 0。
     
-- 编码器-解码器模块包含[layers.py](https://github.com/BeerSquare/fun-transformer/blob/main/utils/layers.py)和[model.py](https://github.com/BeerSquare/fun-transformer/blob/main/utils/model.py)两个文件。其中，[model.py](https://github.com/BeerSquare/fun-transformer/blob/main/utils/model.py)包含Encoder、Decoder和Transformer的整体设计，主要依赖[layers.py](https://github.com/BeerSquare/fun-transformer/blob/main/utils/layers.py)中的PositionEncoding、MultipleAttention、FF（前馈层）来实现。
+- 编码器-解码器模块包含[layers.py](https://github.com/BeerSquare/fun-transformer/blob/main/utils/layers.py)和[model.py](https://github.com/BeerSquare/fun-transformer/blob/main/utils/model.py)两个文件。其中，[model.py](https://github.com/BeerSquare/fun-transformer/blob/main/utils/model.py)包含Encoder、Decoder和Projection的三个核心，这三个核心依赖[layers.py](https://github.com/BeerSquare/fun-transformer/blob/main/utils/layers.py)中的PositionEncoding、MultipleAttention、FF（前馈神经网络层）实现。
   - **类PositionEncoding**负责为 Transformer 模型中的输入序列添加位置信息。其输入为编码器输入（enc_inputs）。该类定义了两个方法，**init方法**负责初始化位置编码模块，生成位置编码表 pos_table。具体的生成公式推导参见**附录**。该方法生成位置编码表后，将其转换为 PyTorch 张量，最后初始化 Dropout 层。**forward 方法**负责将位置编码添加到输入序列中。该方法添加位置编码后应用 Dropout。
 
- 
   - **类ScaledDotProductAttention**实现了缩放点积注意力机制（Scaled Dot-Product Attention）。该机制的公式和具体作用详见**附录**。其中**init方法**负责初始化缩放点积注意力模块，保存 d_k 的值，用于后续的缩放操作。**forward 方法**负责计算缩放点积注意力，返回上下文表示 context 和注意力权重 attn。
     
   - **类MultiHeadAttention**负责实现多头注意力机制。该机制的公式和具体作用详见**附录**。其中**init方法**定义线性变换矩阵 W_Q、W_K、W_V，用于将输入映射到多个注意力头的查询、键和值；定义线性变换矩阵 fc，用于将多个注意力头的输出拼接并映射回 d_model 维度。**forward 方法**计算了多头注意力。
 
-  - **类FF**
-  - **类Encoder**
-  - **Decoder**
-  - **Transformer**
+  - **类FF**负责实现前馈神经网络。init初始化前馈神经网络模块。 forward 方法对输入进行前馈神经网络处理，残差连接和层归一化：
+  - **类EncoderLayer**负责编码器的单层结构，包含多头自注意力和前馈神经网络。
+  - **类Encoder**负责将输入序列编码为上下文表示。
+  - **类DecoderLayer**负责解码器的单层结构，包含多头自注意力、编码器-解码器注意力和前馈神经网络。
+  - **类Decoder**负责基于编码器的输出和之前的解码器输出，生成目标序列。
+  - **类Transformer**为完整的 Transformer 模型，包括编码器和解码器。
 - train.py为训练模块。
 - test.py为测试模块。
 
@@ -299,6 +300,40 @@ txt文件输入->句子对列表（sentences）->源词汇表（src_vocab）和�
 
 ## 附录：核心机制的可视化
 ### 词嵌入与词向量
+- 词汇映射
+  ```python
+  import numpy as np
+  import matplotlib.pyplot as plt
+  plt.rcParams['font.sans-serif']=['SimSun']
+  from mpl_toolkits.mplot3d import Axes3D
+  
+  words=["猫","狗","爱","跑"]
+  vectors=[[0.3,0.4,0.25],[0.35,0.45,0.3],[0.8,0.8,0.8],[0.1,0.2,0.6]]
+  
+  #将三维向量转化为numpy数组
+  vectors=np.array(vectors)
+  
+  #创建3维坐标轴底图
+  fig=plt.figure(figsize=(15,7))#图像大小10*7
+  ax=fig.add_subplot(111,projection='3d')#在图像fig（1，1，1）处添加子图并指定为3d投影
+  
+  #将每个词汇向量描点在3d底图上
+  scatter=ax.scatter(vectors[:,0],vectors[:,1],vectors[:,2],c=['blue','green','red','purple'],s=100)#散点们的x、y、z坐标分别从vector数组的第0、1、2列获取，设置颜色，设置散点大小为100
+  
+  #为每个点添加标签
+  for i,word in enumerate(words):#遍历words列表，每次迭代返回一个元组(i,word),其中word是返回单词，i是索引
+      ax.text(vectors[i,0],vectors[i,1],vectors[i,2],word,size=15,zorder=1)#zorder是文本位置，越大越靠上显示
+  
+  ax.set_xlabel('X轴',fontsize=14)
+  ax.set_ylabel('Y轴',fontsize=14)
+  ax.set_zlabel('Z轴',fontsize=14)
+  
+  ax.set_xticklabels([])
+  ax.set_yticklabels([])
+  ![image](https://github.com/user-attachments/assets/7d1d0eb0-9c03-4130-841a-8c8b0738e1e0)
+
+  
+- 词向量转化
 
 ### 注意力机制
 
