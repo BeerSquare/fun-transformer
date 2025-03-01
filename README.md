@@ -21,7 +21,7 @@
 - Python 3.8+
 - PyTorch 1.10+
 - NumPy
-- Matplotlib（可选，用于可视化注意力权重）
+- Matplotlib
 ### 安装步骤
 - 克隆本仓库
   ```bash
