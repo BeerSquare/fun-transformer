@@ -432,11 +432,15 @@ txt文件输入->句子对列表（sentences）->源词汇表（src_vocab）和�
   #调用了plot_word_vectors(model, words_to_plot)函数
   plot_word_vectors(model, words)
 ![image](https://github.com/user-attachments/assets/ffb3672e-0cfd-49ad-adf2-857d2bc36a8c)
-
-
+### 位置编码
+![image](https://github.com/user-attachments/assets/0916d559-b5ad-4876-a67e-5222212883ae)
 ### 注意力机制
+![image](https://github.com/user-attachments/assets/83321008-7d1e-4cfe-b1b7-876ba99831bd)
+![image](https://github.com/user-attachments/assets/9baac572-c115-45d2-9f6a-d50da8354e7c)
 
 ### 编码器-解码器
+![image](https://github.com/user-attachments/assets/88162938-ad42-444c-a0a1-ac9b6e799edb)
+![image](https://github.com/user-attachments/assets/f9e86fb5-2a89-4cb8-bd91-1578649844b8)
 
 ## 常见问题QA
 ### 为什么数据预处理需要填充？
@@ -444,9 +448,50 @@ txt文件输入->句子对列表（sentences）->源词汇表（src_vocab）和�
 ### 为什么目标语言既是解码器的输入、又是解码器的输出？
 - 这种设计是为了实现自**回归Auto-regressive**的训练方式。在训练阶段，解码器的目标是逐步生成目标序列。为了实现这一点，解码器在每一步的输入是前一步的输出。
 - 例如，解码器首先生成第一个词 "Full"，然后以 "Full" 作为输入生成第二个词 "of"，依此类推。
+### 位置编码的具体过程是？
+- 经典的编码过程（摘自《Attention is All You Need》）如下。
+
+- 设定$d$为位置向量的维度。在Transformer中，词向量和位置向量是逐元素相加的，因此位置向量的维度通常与词向量维度相同。
+
+- 设定$i$为位置编码向量的维度的索引，其取值为$0$到$d/2-1$。
+
+- 当$i$为偶数是，即$2i=(0,2,4,…)$时，位置编码应当使用正弦函数；当$i$为奇数时，即$2i+1=(1, 3, 5, …)$时，位置编码应当使用余弦函数。
+
+- 因此位置编码公式为：
+
+- $PE(pos，2i)=sin(pos/10000^{2i/d})$
+
+- $PE(pos，2i+1)=cos(pos/10000^{2i/d})$
+
+- 举例来说，假设$d=4$，则$i$取值为$0$到$1$。对于$pos=1$，位置编码计算如下：
+
+- 当$i=0$时，$2i=0$，则$PE(1，0)=sin(1/10000^{0/4})$；
+
+                  $2i+1=1$，则$PE(1，1)=cos(1/10000^{0/4})$。
+
+- 当$i=1$时，$2i=2$，则$PE(1，2)=sin(1/10000^{1/4})$；
+
+                  $2i+1=3$，则$PE(1，3)=cos(1/10000^{1/4})$。
 ### 为什么要用Dropout在训练时随机丢弃部分位置编码信息？
 - Dropout 是一种正则化技术，用于防止神经网络过拟合。它的核心思想是在训练过程中，随机丢弃神经网络中的一部分神经元或特征，模拟噪声，从而减少神经元之间的相互依赖，增强模型的泛化能力，防止过拟合。
-
+### 多头注意力机制的具体实现过程是？
+- 它由多个头组成，每个头都有自己的Q、K、V。其中，Q是我们需要关注的内容，K是序列中每个位置的特征，V是序列中每个位置的实际内容。
+- 1. 输入x分别与Q的权重矩阵、K的权重矩阵、V的权重矩阵相乘，得到Query、Key、Value。
+- 2. 自注意力输出$Z=softmax（QK^T/\sqrt{\smash[b]{d_k}}）V$
+### K和V的区别在于？
+- *K* 关注的是 **内容的相似性**：它捕捉的是输入序列中每个位置的特征，动态地匹配 Query 与输入序列中的内容的相似度，用于计算注意力分数。
+- V 关注的是 **实际的信息**：它捕捉的是输入序列中每个位置的实际信息，用于加权求和
+### 为什么要缩放点积注意力？
+- 在输出公式中，$QK^T$计算了 Query 和 Key 之间的相似度，被称为点积注意力。可以观察到当查询Q和键值K相似度越高，点积结果越大。
+- 其中，$d_k$ 是每个头的维度。通常$d_k=d_{model}/h$，其中$d_{model}$是词向量的维度（也是位置编码的维度），$h$是多头注意力的头数。$\sqrt{\smash[b]{d_k}}$被称为缩放因子，其作用是防止内积过大。
+- 其原理在于，当每个注意力头的维度越大，点积注意力$QK^T$这个矩阵内部元素的最大值也会很大，大到在softmax（指数求概率）时，结果会接近一个独热向量，完全不存在其他位置的注意力信息，反正都是1或者0。此时除以一个$\sqrt{\smash[b]{d_k}}$，可以有效缩小$QK^T$softmax后的值。
+### 残差连接的目的是？
+- 残差连接的目的是缓解梯度消失和梯度爆炸问题。其原理在于，x+y对反向传播时梯度的影响。
+- $\frac{\partial {L}}{\partial{x}}={\frac{\partial {L}}{\partial{y}}}.\frac{\partial {y}}{\partial{x}}={\frac{\partial {L}}{\partial{y}}}.\frac{\partial {(F(x)+x)}}{\partial{x}}={\frac{\partial {L}}{\partial{y}}}.{(\frac{\partial {(F(x))}}{\partial{x}}+1)}$
+- 即使$\frac{\partial {F(x)}}{\partial{x}}$很小，残差连接仍然可以保证至少有一部分梯度（即 +1）能够传播回去。
+### 层归一化的目的是？
+- 加速训练过程并提高模型的稳定性。
+- 为什么使输出均值为0，方差为1就能加速训练过程并提高模型的稳定性呢？因为输出均值为0，方差为1，可使每一层的输入分布更加稳定，使输入数据集中在激活函数的敏感区域，梯度更容易传播。
 
 ## 许可证
 本项目基于 [fun-transformer](https://github.com/datawhalechina/fun-transformer) 的 Apache License 2.0许可证。详情请参阅 [LICENSE](https://github.com/BeerSquare/fun-transformer/blob/main/LICENSE.txt) 文件。
