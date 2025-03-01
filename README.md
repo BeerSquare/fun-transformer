@@ -330,10 +330,109 @@ txt文件输入->句子对列表（sentences）->源词汇表（src_vocab）和�
   
   ax.set_xticklabels([])
   ax.set_yticklabels([])
-  ![image](https://github.com/user-attachments/assets/7d1d0eb0-9c03-4130-841a-8c8b0738e1e0)
-
-  
+![image](https://github.com/user-attachments/assets/4ca96882-2674-43ff-adec-bc476dd56735)
 - 词向量转化
+  ```python
+  import jieba
+  import re
+  import numpy as np
+  from sklearn.decomposition import PCA
+  import gensim
+  from gensim.models import Word2Vec
+  import matplotlib.pyplot as plt
+  import matplotlib
+  
+  #r是原始字符串，避免\被解释为转义字符
+  f=open(r"C:\...\hongloumeng.txt",encoding='gb2312',errors='ignore')
+  #创建一个空列表 lines，用于存储处理后的文本行
+  lines=[]
+  #遍历文件的每一行，line 是当前行的字符串
+  for line in f:
+      #将字符串 line 分词，返回一个分词后的列表 temp
+      temp=jieba.lcut(line)
+      #创建一个空列表 words，用于存储当前行处理后的词语
+      words=[]
+      #遍历分词后的列表 temp，i 是当前词语
+      for i in temp:
+          #去除不必要字符
+          i=re.sub("[\s+\.\!\/_.$%^*(++\"\'“”《》]+|[+——！，。？、\
+                              ~·@#￥%……&* ( ) '------------'；：‘]+","",i)
+          #如果处理后的词语 i 不为空（len(i) > 0）
+          #则将其添加到列表 words 中
+          if len(i)>0:
+              words.append(i)
+      #如果当前行处理后的词语列表 words 不为空，则将其添加到 lines 中
+      if len(words)>0:
+          lines.append(words)
+  #展示前三段分词结束
+  print(lines[:3])
+  
+  #模型会遍历整个训练数据集的次数为7，负样本（目标词和随机词）来学习词向量
+  #Word2Vec 模型通过对比正样本（目标词和上下文词）和负样本（目标词和随机词）来学习词向量
+  model = Word2Vec(lines, vector_size = 20, window=3, min_count=3, \
+                   epochs=7,negative=10)
+  
+  # 输入一个路径，保存训练好的模型
+  model.save("C:/.../word2vec_gensim")
+  
+  #可视化
+  import numpy as np
+  import matplotlib.pyplot as plt
+  #将高维数据（如文本、图像、特征向量）转换为低维数据
+  from sklearn.decomposition import PCA
+  import matplotlib.font_manager as fm
+  
+  #定义函数用于绘制词向量，model是训练好的词模型，words_to_plot是需要特别标注的词列表
+  def plot_word_vectors(model, words_to_plot):
+      rawWorVec = []#用于存储所有词向量的列表
+      word2ind = {}#用于存储词语到索引的映射词典
+      #enumerate可以返回model.wv.index_to_key里的索引和值，即词汇表的索引和值
+      #i是索引，即第一次循环i=0，w=model.wv.index_to_key[0]，w是一个词
+      for i, w in enumerate(model.wv.index_to_key):
+          rawWorVec.append(model.wv[w])#w的词向量存储到rawWorVec中
+          word2ind[w] = i#key=w的位置存一下i这个value，即词汇w和其对应的索引存储到word2ind中
+  
+      rawWorVec = np.array(rawWorVec)#Word2Vec本身默认是Numpy，但为了统一格式，会显式转换一下
+      X_reduced = PCA(n_components=2).fit_transform(rawWorVec)#将高维词向量降维到 2 维，便于可视化
+  
+      fig = plt.figure(figsize=(16, 16))#创建画布16*16
+      ax = fig.gca()#获取当前坐标系，即获取 Axes 对象，才能直接对坐标系进行自定义设置
+      ax.set_facecolor('white')#设置背景颜色
+      #绘制散点图
+      #X_reduced[:, 0] 和 X_reduced[:, 1]分别表示降维后的数据的第一列映射到x轴、第二列映射到y轴
+      #点的颜色为黑色，大小为 1，透明度为 0.3。
+      ax.plot(X_reduced[:, 0], X_reduced[:, 1], '.', markersize=1, alpha=0.3, color='black')
+  
+      # 查找系统中可用的中文字体
+      #fontpaths=None表示在所有默认字体路径中查找
+      #表示查找扩展名为 .ttf 的字体文件
+      font_list = fm.findSystemFonts(fontpaths=None, fontext='ttf')
+      for font in font_list:
+          #如果找到 "SimHei" 字体，则使用 fm.FontProperties() 加载该字体
+          if 'SimHei' in font:
+              zhfont1 = fm.FontProperties(fname=font, size=10)
+              break
+  
+      for w in words_to_plot:
+          if w in word2ind:
+              ind = word2ind[w]#获取词 w 的索引
+              xy = X_reduced[ind]#获取词在降维空间中的二维坐标 [x, y]
+              plt.plot(xy[0], xy[1], '.', alpha=1, color='green', markersize=10)
+              plt.text(xy[0], xy[1], w, alpha=1, color='blue', fontproperties=zhfont1)
+  
+      plt.show()
+  
+  # 假设已经加载了词向量模型
+  # 这里需要根据实际情况加载模型，例如：
+  # from gensim.models import Word2Vec
+  # model = Word2Vec.load('your_model.bin')
+  
+  words = ['紫鹃', '香菱', '王熙凤', '林黛玉', '贾宝玉']
+  model=Word2Vec.load(r'C:\...\word2vec_gensim')
+  #调用了plot_word_vectors(model, words_to_plot)函数
+  plot_word_vectors(model, words)
+![image](https://github.com/user-attachments/assets/ffb3672e-0cfd-49ad-adf2-857d2bc36a8c)
+
 
 ### 注意力机制
 
