@@ -12,11 +12,9 @@
 - 注意力可视化：支持查看 Encoder 和 Decoder 的注意力权重。
 
 ## 修改
-### 删除了以下模块：
-- 显式指明sentence，静态生成词汇表
-### 添加了以下模块：
-- 从 txt 文件中读取句子
-- 动态生成词汇表
+- 分离了训练模块和测试模块
+- 删除了显式指明sentence并静态生成词汇表模块
+- 支持从 txt 文件中读取sentence并动态生成词汇表
 
 ## 安装指南
 ### 依赖环境
@@ -37,57 +35,155 @@
 
 ## 使用说明
 ### 数据准备
-- 数据格式：[hongloumeng.txt](https://github.com/BeerSquare/fun-transformer/blob/main/hongloumeng.txt)是一个包含中英文句子的列表，格式如下：
+- 文件内提供了两个包含中英文句子词库。其中[hongloumeng.txt](https://github.com/BeerSquare/fun-transformer/blob/main/hongloumeng.txt)仅有四个句子，适合快速验证代码；[ChineseToEnglish.txt](https://github.com/BeerSquare/fun-transformer/blob/main/ChineseToEnglish.txt)有4096个句子，适合验证训练质量。
+- 你可以通过[Tatoeba多语言句子库](https://tatoeba.org/zh-cn/downloads)等开放语言库获更大的数据集。数据格式如下：
   ```txt
   满纸荒唐言|Full of nonsense
   一把辛酸泪|A handful of bitter tears
   都言作者痴|They say the author is foolish
   谁解其中味|Who understands the true meaning
-- 或者，你可以选择更大的数据集[ChineseToEnglish.txt](https://github.com/BeerSquare/fun-transformer/blob/main/ChineseToEnglish.txt)。此数据集来源[Tatoeba多语言句子库](https://tatoeba.org/zh-cn/downloads)。
 
 ### 训练模型
-- 运行以下代码开始训练：
+- 运行[main.py](https://github.com/BeerSquare/fun-transformer/blob/main/main.py)开始训练：
   ```python
+  import os
+  import torch
+  import torch.nn as nn
+  import torch.optim as optim
+  import torch.utils.data as Data
+  from utils.data_utils import load_sentences_from_txt, build_vocab, make_data, MyDataSet
+  from utils.train import train
+  from utils.model import Transformer
+  
+  
+  # 主函数
   def main():
-    # 加载句子和生成词汇表
-    file_path = 'hongloumeng.txt'  # 替换为你的 txt 文件路径
-    sentences = load_sentences_from_txt(file_path)
-    src_vocab, tgt_vocab = build_vocab(sentences)
-
-    # 计算 src_len 和 tgt_len
-    src_len = max(len(sentence[0].split()) for sentence in sentences)  # Encoder 输入的最大长度
-    tgt_len = max(len(sentence[1].split()) for sentence in sentences)  # Decoder 输入输出的最大长度
-
-    # 生成数据
-    enc_inputs, dec_inputs, dec_outputs = make_data(sentences, src_vocab, tgt_vocab, src_len, tgt_len)
-
-    # 创建数据集和数据加载器
-    dataset = MyDataSet(enc_inputs, dec_inputs, dec_outputs)
-    loader = Data.DataLoader(dataset, batch_size=32, shuffle=True)
-
-    # 定义超参数
-    d_model = 512
-    d_ff = 2048
-    d_k = d_v = 64
-    n_layers = 6
-    n_heads = 8
-    src_vocab_size = len(src_vocab)
-    tgt_vocab_size = len(tgt_vocab)
-
-    # 初始化模型
-    model = Transformer(src_vocab_size, tgt_vocab_size, d_model, d_k, d_v, n_heads, d_ff, n_layers)
-
-    # 定义损失函数和优化器
-    criterion = nn.CrossEntropyLoss(ignore_index=0)  # 忽略填充符的损失
-    optimizer = optim.SGD(model.parameters(), lr=1e-3, momentum=0.99)
-
-    # 训练模型
-    train(model, loader, criterion, optimizer, epochs=10)
-    
-    # 测试模型
-    test(model, src_vocab, tgt_vocab, src_len, tgt_len)
-
-### 使用[hongloumeng.txt](https://github.com/BeerSquare/fun-transformer/blob/main/hongloumeng.txt)作为数据集训练模型
+      # 加载句子和生成词汇表
+      file_path = 'hongloumeng.txt'  # 替换为你的 txt 文件路径
+      sentences = load_sentences_from_txt(file_path)# 使用函数从txt文件中读取sentences
+      src_vocab, tgt_vocab = build_vocab(sentences)# 使用函数生成源语言和目标语言的词汇表
+  
+      # 如果 vocab.pth 文件存在，则加载词汇表；否则生成并保存词汇表
+      if os.path.exists('vocab.pth'):
+          vocab_data = torch.load('vocab.pth')
+          src_vocab = vocab_data['src_vocab']
+          tgt_vocab = vocab_data['tgt_vocab']
+          print("词汇表已从 'vocab.pth' 加载")
+      else:
+          src_vocab, tgt_vocab = build_vocab(sentences)  # 使用函数生成源语言和目标语言的词汇表
+          # 保存词汇表到文件
+          vocab_data = {
+              'src_vocab': src_vocab,
+              'tgt_vocab': tgt_vocab,
+              'src_len': max(len(sentence[0].split()) for sentence in sentences),  # 源句子最大长度
+              'tgt_len': max(len(sentence[1].split()) for sentence in sentences)   # 目标句子最大长度
+          }
+          torch.save(vocab_data, 'vocab.pth')
+          print("词汇表已保存到 'vocab.pth'")    
+  
+  
+      # 计算 src_len 和 tgt_len的最大长度
+      src_len = max(len(sentence[0].split()) for sentence in sentences)  # sentence[0] 是源句子，split() 将其按空格分割成词，len() 计算词的数量
+      tgt_len = max(len(sentence[1].split()) for sentence in sentences)  
+  
+      # 调用make_data生成Encoder输入、Decoder输入、Decoder输出
+      enc_inputs, dec_inputs, dec_outputs = make_data(sentences, src_vocab, tgt_vocab, src_len, tgt_len)
+  
+      # 创建数据集和数据加载器
+      dataset = MyDataSet(enc_inputs, dec_inputs, dec_outputs)#将 enc_inputs、dec_inputs 和 dec_outputs 封装为一个数据集对象
+      loader = Data.DataLoader(dataset, batch_size=2, shuffle=True)#使用 DataLoader 创建数据加载器 loader，用于批量加载数据
+  
+      # 定义超参数
+      d_model = 512 #词向量维度
+      d_ff = 2048 #前馈神经网络的隐藏层维度
+      d_k = d_v = 64 #K和V的维度
+      n_layers = 6 #tranformer模型的层数
+      n_heads = 8 #注意力头数
+      src_vocab_size = len(src_vocab)#源语言词汇表的大小
+      tgt_vocab_size = len(tgt_vocab)#目标语言词汇表的大小
+  
+      # 初始化Transformer模型
+      model = Transformer(src_vocab_size, tgt_vocab_size, d_model, d_k, d_v, n_heads, d_ff, n_layers)
+      
+      # 定义损失函数criterion和优化器optimizer
+      criterion = nn.CrossEntropyLoss(ignore_index=0)  # 忽略填充符的损失
+      optimizer = optim.SGD(model.parameters(), lr=1e-3, momentum=0.99)
+  
+      # 训练模型
+      train(model, loader, criterion, optimizer, epochs=50)
+      
+  
+  # 运行主函数
+  if __name__ == '__main__':
+      main()
+  
+### 测试模型
+- 运行[test_utils.py](https://github.com/BeerSquare/fun-transformer/blob/main/test_utils.py)进行测试
+  ```python
+  import torch
+  from utils.model import Transformer
+  
+  def translate(model, src_sentence, src_vocab, tgt_vocab, src_len, tgt_len):
+      model.eval()  # 将模型设置为评估模式
+      src_tokens = src_sentence.split()
+      src_indices = [src_vocab.get(token, src_vocab['P']) for token in src_tokens]  # 将源句子转换为索引
+      src_indices = torch.LongTensor(src_indices).unsqueeze(0)  # 添加 batch 维度
+  
+      # 初始化 Decoder 输入
+      dec_input = torch.LongTensor([[tgt_vocab['S']]])  # 以起始符开始
+  
+      # 逐个生成目标句子
+      for i in range(tgt_len):
+          with torch.no_grad():
+              dec_logits, _, _, _ = model(src_indices, dec_input)  # 提取 dec_logits
+          pred = dec_logits.argmax(dim=-1)[-1].item()  # 获取最后一个词的预测结果
+          if pred == tgt_vocab['E']:  # 如果预测到结束符，停止生成
+              break
+          dec_input = torch.cat([dec_input, torch.LongTensor([[pred]])], dim=-1)  # 将预测词添加到 Decoder 输入中
+  
+      # 将生成的索引转换为目标句子
+      tgt_tokens = [list(tgt_vocab.keys())[list(tgt_vocab.values()).index(idx)] for idx in dec_input.squeeze().tolist()]
+      tgt_sentence = ' '.join(tgt_tokens[1:])  # 去掉起始符
+  
+      return tgt_sentence
+  
+  
+  def test(model, src_vocab, tgt_vocab, src_len, tgt_len, batch_size=2, epochs=50):
+      # 测试句子
+      test_sentence = "满纸辛酸泪"
+      
+      print(f"源句子: {test_sentence}")
+      translated_sentence = translate(model, test_sentence, src_vocab, tgt_vocab, src_len, tgt_len)
+      print(f"翻译结果: {translated_sentence}")
+  
+  if __name__ == '__main__':
+     if __name__ == '__main__':
+      # 加载词汇表和其他参数
+      vocab_data = torch.load('vocab.pth')
+      src_vocab = vocab_data['src_vocab']
+      tgt_vocab = vocab_data['tgt_vocab']
+      src_len = vocab_data['src_len']
+      tgt_len = vocab_data['tgt_len']
+  
+      # 根据词汇表大小初始化模型
+      src_vocab_size = len(src_vocab)  # 使用实际词汇表大小
+      tgt_vocab_size = len(tgt_vocab)  # 使用实际词汇表大小
+      model = Transformer(src_vocab_size=src_vocab_size, tgt_vocab_size=tgt_vocab_size, d_model=512, d_k=64, d_v=64, n_heads=8, d_ff=2048, n_layers=6)
+  
+      # 加载模型权重
+      state_dict = torch.load('model.pth')
+  
+      # 过滤不匹配的权重
+      filtered_state_dict = {k: v for k, v in state_dict.items() if k in model.state_dict() and v.shape == model.state_dict()[k].shape}
+  
+      # 加载匹配的权重
+      model.load_state_dict(filtered_state_dict, strict=False)  # strict=False 允许部分加载
+      model.eval()  # 设置为评估模式
+  
+      # 测试模型
+      test(model, src_vocab, tgt_vocab, src_len, tgt_len)
+  
+### 使用[hongloumeng.txt](https://github.com/BeerSquare/fun-transformer/blob/main/hongloumeng.txt)作为数据集
 - 测试：翻译“满纸辛酸泪”：
   ```python
   # 测试函数
@@ -112,7 +208,7 @@
   源句子: 满纸辛酸泪
   翻译结果: They say the author
 - 翻译结果：张冠李戴。txt内是所有词汇对应表。训练数据太少，只能缘木求鱼；凡有修改，就会张冠李戴。
-### 使用[ChineseToEnglish.txt](https://github.com/BeerSquare/fun-transformer/blob/main/ChineseToEnglish.txt)作为数据集训练模型
+### 使用[ChineseToEnglish.txt](https://github.com/BeerSquare/fun-transformer/blob/main/ChineseToEnglish.txt)作为数据集
 - 测试：翻译“满纸辛酸泪”：
   ```python
   # 测试函数
